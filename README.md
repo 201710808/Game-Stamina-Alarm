@@ -1,14 +1,12 @@
 # Game-Stamina-Alarm
 
-```sequence
-Clinet->Server: Present Stamina
-Note right of Server: Check every 6 mins
-Server->Discord: Stamina will be full in 60 mins
-Discord-> User: Stamina will be full in 60 mins!!!
-```
+```flow
+st=>start: Start
+op=>operation: Your Operation
+cond=>condition: Yes or No?
+e=>end
 
-```sequence
-Alice->Bob: Hello Bob, how are you?
-Note right of Bob: Bob thinks
-Bob-->Alice: I am good thanks!
+st->op->cond
+cond(yes)->e
+cond(no)->op
 ```
