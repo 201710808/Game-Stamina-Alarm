@@ -1,9 +1,15 @@
 # Game-Stamina-Alarm
 
 ```mermaid
-%% Example of sequence diagram
-  sequenceDiagram
-    Alice->>Bob: Hello Bob, how are you?
-    Bob->>Alice: Thanks for asking
-    end
-​```
+flowchart TB
+    c1-->a2
+    subgraph one
+    a1-->a2
+    End
+    subgraph two
+    b1-->b2
+    End
+    subgraph three
+    c1-->c2
+    End
+```
