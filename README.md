@@ -8,5 +8,5 @@ graph TB;
     subgraph Smartphone;
     Client-->Server;
     end;
-    Server-->Server;
+    Server-->Check stamina every 6 mins
 ```
