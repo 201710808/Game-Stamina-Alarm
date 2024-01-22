@@ -8,7 +8,7 @@ graph TB;
     subgraph Smartphone;
     Client-->Server;
     end;
-    Server-->Condition<"Check Stamina every 6 mins">;
-    Condition-->|"not yet"|Server;
-    Condition-->Alarm["Discord Alarm"];
+    Server-->Condition{"Will stamina be full in 60 mins?"};
+    Condition-->|"No"|Server;
+    Condition-->|"Yes"|Alarm["Discord Alarm"];
 ```
