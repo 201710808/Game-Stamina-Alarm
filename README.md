@@ -8,5 +8,5 @@ graph TB;
     subgraph Smartphone;
     Client-->Server;
     end;
-    Server-->Check_stamina_every_6_mins;
+    Server-->Condition["Check Stamina every 6 mins"];
 ```
