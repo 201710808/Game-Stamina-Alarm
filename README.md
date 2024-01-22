@@ -9,4 +9,5 @@ graph TB;
     Client-->Server;
     end;
     Server-->Condition["Check Stamina every 6 mins"];
+    Condition-->|"not yet"|Server
 ```
