@@ -7,7 +7,7 @@ graph TB;
     subgraph PC;
     Client;
     end;
-    subgraph Smartphone&nbsp;&nbsp;&nbsp;
+    subgraph Smartphone;
     Client-->Server;
     Server-->Condition{"Will stamina\nbe full in 60 mins?"};
     end;
