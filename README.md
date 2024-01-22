@@ -8,7 +8,7 @@ graph TB;
     subgraph Smartphone;
     Client-->Server;
     end;
-    Server-->Condition{"Will stamina be full in 60 mins?"};
+    Server-->Condition{"Will stamina\nbe full in 60 mins?"};
     Condition-->|"No"|Server;
     Condition-->|"Yes"|Alarm["Discord Alarm"];
 ```
