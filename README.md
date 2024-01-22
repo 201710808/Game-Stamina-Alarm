@@ -2,10 +2,10 @@
 
 ```mermaid
 graph TB;
-    subgraph one;
-    A-->B;
+    subgraph PC;
+    Client;
     end;
-    A-->C;
-    B-->D;
-    C-->D;
+    subgraph Smartphone;
+    Client-->Server;
+    end;
 ```
