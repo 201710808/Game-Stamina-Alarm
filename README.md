@@ -14,3 +14,7 @@ graph TB;
     Condition-->|"No"|Server;
     Condition-->|"Yes"|Alarm["Discord Alarm"];
 ```
+
+## 구현 방법
+### Client
+### Server
