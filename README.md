@@ -83,15 +83,15 @@ graph TB;
     discord_condition-->|"Yes"|discord_message[디스코드 알림\n메시지 전송]
     discord_condition-->|"No"|task.loop;
     end;
-
-    Stamina-->output_stamina[현재 스태미나\n정보 출력];
     
     subgraph UI;
     input_stamina[1. 스태미나 직접 입력];
     check_ip[2. 기기 IP 확인]-->output_ip[현재 IP\n정보 출력];
     check_stamina[3. 스태미나 확인];
+    output_stamina;
     
     end;
-    check_stamina-->Stamina;
     input_stamina-->|스태미나 정보 갱신|Stamina;
+    check_stamina-->Stamina;
+    Stamina-->output_stamina[현재 스태미나\n정보 출력];
 ```
