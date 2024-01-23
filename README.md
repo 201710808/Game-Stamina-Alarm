@@ -76,5 +76,8 @@ graph TB;
     subgraph Discord_Bot;
     TOKEN-->Client[discord.Client];
     CHANNEL_ID-->Client;
+    Client-->task.loop;
+    task.loop-->condition{Max_Stamina - Present_Stamina <= 0\nand\nsec == 0};
+    condition-->|"Yes"|discord_message[디스코드 알림\n메시지 전송]
     end;
 ```
