@@ -66,5 +66,8 @@ graph TB;
     subgraph Timer;
     sec[sec=360]-->condition{sec != 0};
     condition-->|"Yes"|process_time[sec -= 1\ntime.sleep 1];
+    process_time-->condition;
+    condition-->|"No"|sync_stamina[현재 스태미나 +1];
+    sync_stamina-->sec;
     end;    
 ```
