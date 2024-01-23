@@ -56,14 +56,14 @@ OCR과정은 Tesseract OCR을 사용하였습니다.
 graph TB;
     data[Client에서\n전송된 데이터]-->Accept;
     
-    subgraphTB Server Socket;
+    subgraph Server Socket;
     Socket-->Listen;
     Listen-->Accept;
     Accept-->stamina_sync[스태미나\n정보 갱신];
     stamina_sync-->Listen;
     end;
 
-    subgraphTB Timer;
+    subgraph Timer;
     timer_start[타이머 생성]-->sec;
     sec[sec=360]-->condition{sec != 0};
     condition-->|"Yes"|process_time[sec -= 1\ntime.sleep 1];
