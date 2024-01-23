@@ -71,7 +71,7 @@ graph TB;
     condition-->|"No"|sync_stamina[현재 스태미나 +1];
     sync_stamina-->sec;
     end;
-    sync_stamina-->Stamina;
+    sync_stamina-->|스태미나 정보 갱신|Stamina;
 
     subgraph Discord_Bot;
     TOKEN-->Client[discord.Client];
