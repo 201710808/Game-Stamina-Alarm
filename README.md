@@ -19,9 +19,9 @@ graph TB;
 ### Client
 ```mermaid
 graph TB;
-    subgraph PC Client;
     Original_image-->Screenshot;
     Target_image-->Load;
+    subgraph PC Client;
     Screenshot-->gray1[img2gray]
     Load-->gray2[img2gray]
     gray1-->SIFT;
@@ -54,27 +54,6 @@ OCR과정은 Tesseract OCR을 사용하였습니다.
 ### Server
 ```mermaid
 graph TB;
-    Original_image-->Screenshot;
-    Target_image-->Load;
-    Screenshot-->gray1[img2gray]
-    Load-->gray2[img2gray]
-    gray1-->SIFT;
-    gray2-->SIFT;
-    SIFT-->knnMatch;
-    knnMatch-->dist_match[이웃 거리 30%로 매칭점 추출];
-    dist_match-->orig_coord[원본 영상 좌표];
-    dist_match-->tgt_coord[대상 영상 좌표];
-    orig_coord-->homography;
-    tgt_coord-->homography[원근 변환\n행렬 계산];
-    homography-->transform_coord[원본 영상 좌표\n원근 변환];
-    transform_coord-->calc_ROI[변환된 좌표 기반\n2개의 ROI 계산];
-    calc_ROI-->Present_stamina;
-    calc_ROI-->Max_stamina;
-    Present_stamina-->bin_neg1[이진화\n및\n색반전];
-    Max_stamina-->bin_neg2[이진화\n및\n색반전];
-    bin_neg1-->OCR1[OCR];
-    bin_neg2-->OCR2[OCR];
-    OCR1-->calc_stamina[스태미나 충전\n예상 시간 계산];
-    OCR2-->calc_stamina;
-    calc_stamina-->connect_server[서버 연결\n및\n데이터 전송];
+    subgraph Mobile
+    
 ```
