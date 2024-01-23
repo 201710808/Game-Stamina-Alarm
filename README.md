@@ -19,16 +19,12 @@ graph TB;
 ### Client
 ```mermaid
 graph TB;
-    
-    Original image-->Screenshot;
-    Target image-->Load;
-    <!--
-
+    Original_image-->Screenshot;
+    Target_image-->Load;
     Screenshot-->gray1[img2gray]
     Load-->gray2[img2gray]
-    --!>
-    gray1-->SIFT
-    gray2-->SIFT
+    gray1-->SIFT;
+    gray2-->SIFT;
 ```
 
 ### Server
