@@ -61,7 +61,7 @@ graph TB;
     Listen-->Accept;
     end;
     Accept-->|스태미나 정보 갱신|Stamina;
-    Stamina-->Listen;
+    Accept-->Listen;
 
     subgraph Timer;
     timer_start[타이머 생성]-->sec;
