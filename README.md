@@ -63,14 +63,13 @@ graph TB;
     Accept-->|스태미나 정보 갱신|Stamina;
     Accept-->Listen;
 
-    sec_start-->sec;
+    sec-->sec360;
     subgraph Timer;
-    timer_start[타이머 생성]-->sec;
-    sec[sec=360]-->condition{sec != 0};
+    sec360[sec=360]-->condition{sec != 0};
     condition-->|"Yes"|process_time[sec -= 1\ntime.sleep 1];
     process_time-->condition;
     condition-->|"No"|sync_stamina[현재 스태미나 +1];
-    sync_stamina-->sec;
+    sync_stamina-->sec360;
     end;
     sync_stamina-->|스태미나 정보 갱신|Stamina;
 
