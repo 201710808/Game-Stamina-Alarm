@@ -72,6 +72,7 @@ graph TB;
     sync_stamina-->sec360;
     end;
 
+    process_time-->|"타이머 갱신"|sec;
     sync_stamina-->|스태미나 정보 갱신|Stamina;
     sec-->discord_condition;
 
