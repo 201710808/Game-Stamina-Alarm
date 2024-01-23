@@ -54,6 +54,14 @@ OCR과정은 Tesseract OCR을 사용하였습니다.
 ### Server
 ```mermaid
 graph TB;
-    subgraph Mobile
+    data[Client에서\n전송된 데이터];
+    subgraph Mobile Termux;
+    subgraph Server Socket;
+    Listen-->Accept;
+    Accept-->stamina_sync[스태미나\n정보 갱신];
+    stamina_sync-->Listen;
+    data-->accept;
+    end;
+    end;
     
 ```
