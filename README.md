@@ -64,6 +64,7 @@ graph TB;
     end;
 
     subgraph Timer;
+    timer_start[타이머 생성]-->sec;
     sec[sec=360]-->condition{sec != 0};
     condition-->|"Yes"|process_time[sec -= 1\ntime.sleep 1];
     process_time-->condition;
