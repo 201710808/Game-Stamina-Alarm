@@ -29,6 +29,7 @@ graph TB;
     knnMatch-->dist_match[이웃 거리 30%로 매칭점 추출];
     dist_match-->orig_coord[원본 영상 좌표];
     dist_match-->tgt_coord[대상 영상 좌표];
+    orig_coord-->homography;
     tgt_coord-->homography[원근 변환\n행렬 계산];
     homography-->transform_coord[원본 영상 좌표\n원근 변환];
     transform_coord-->calc_ROI[변환된 좌표 기반\n2개의 ROI 계산];
