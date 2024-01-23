@@ -87,11 +87,8 @@ graph TB;
     subgraph UI;
     input_stamina[1. 스태미나 직접 입력];
     check_ip[2. 기기 IP 확인]-->output_ip[현재 IP\n정보 출력];
-    check_stamina[3. 스태미나 확인];
-    output_stamina;
+    check_stamina[3. 스태미나 확인]-->output_stamina[현재 스태미나\n정보 출력];
     
     end;
     input_stamina-->|스태미나 정보 갱신|Stamina;
-    check_stamina-->Stamina;
-    Stamina-->output_stamina[현재 스태미나\n정보 출력];
 ```
