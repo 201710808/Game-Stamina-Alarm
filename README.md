@@ -74,7 +74,6 @@ graph TB;
 
     process_time-->|"타이머 갱신"|sec;
     sync_stamina-->|스태미나 정보 갱신|Stamina;
-    sec-->discord_condition;
 
     subgraph Discord_Bot;
     TOKEN-->Client[discord.Client];
@@ -84,5 +83,4 @@ graph TB;
     discord_condition-->|"Yes"|discord_message[디스코드 알림\n메시지 전송]
     discord_condition-->|"No"|task.loop;
     end;
-    Stamina-->discord_condition;
 ```
