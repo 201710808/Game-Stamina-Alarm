@@ -59,7 +59,6 @@ graph TB;
     Listen-->Accept;
     Accept-->stamina_sync[스태미나\n정보 갱신];
     stamina_sync-->Listen;
-    Accept;
     end;
     
 ```
