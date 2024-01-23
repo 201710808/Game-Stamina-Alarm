@@ -21,8 +21,8 @@ graph TB;
 graph TB;
     Original image-->Screenshot;
     Target image-->Load;
-    Screenshot-->gray(img2gray);
-    Load-->gray(img2gray);
+    Screenshot-->gray[img2gray];
+    Load-->gray[img2gray];
 ```
 
 ### Server
