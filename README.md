@@ -78,9 +78,9 @@ graph TB;
     CHANNEL_ID-->Client;
     Client-->task.loop;
     task.loop-->discord_condition{Max_Stamina - Present_Stamina <= 0\nand\nsec == 0};
-    Stamina-->discord_condition;
     sec-->discord_condition;
     discord_condition-->|"Yes"|discord_message[디스코드 알림\n메시지 전송]
     discord_condition-->|"No"|task.loop;
     end;
+    Stamina-->discord_condition;
 ```
