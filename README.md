@@ -95,3 +95,5 @@ graph TB;
 ```
 서버는 모바일 환경에서 Termux라는 어플을 사용하여 Python코드를 구동하여 구축하였습니다.    
 [Termux 앱으로 안드로이드 폰으로 SSH 서버 환경설정](https://oopaque.tistory.com/84)  
+
+## 실제 동작
