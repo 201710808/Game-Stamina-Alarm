@@ -70,5 +70,10 @@ graph TB;
     process_time-->condition;
     condition-->|"No"|sync_stamina[현재 스태미나 +1];
     sync_stamina-->sec;
-    end;    
+    end;
+
+    subgraph Discord_Bot;
+    TOKEN-->Client[discord.Client];
+    CHANNEL_ID-->Client;
+    end;
 ```
