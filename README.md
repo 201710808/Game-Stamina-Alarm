@@ -84,7 +84,6 @@ graph TB;
     discord_condition-->|"No"|task.loop;
     end;
 
-    Stamina-->check_stamina;
     Stamina-->output_stamina[현재 스태미나\n정보 출력];
     
     subgraph UI;
