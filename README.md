@@ -55,13 +55,13 @@ OCR과정은 Tesseract OCR을 사용하였습니다.
 ```mermaid
 graph TB;
     data[Client에서\n전송된 데이터]-->Accept;
-    Accept-->|스태미나 정보 갱신|Stamina;
 
     subgraph Server Socket;
     Socket-->Listen;
     Listen-->Accept;
-    Stamina-->Listen;
     end;
+    Accept-->|스태미나 정보 갱신|Stamina;
+    Stamina-->Listen;
 
     subgraph Timer;
     timer_start[타이머 생성]-->sec;
