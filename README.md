@@ -55,14 +55,12 @@ OCR과정은 Tesseract OCR을 사용하였습니다.
 ```mermaid
 graph TB;
     data[Client에서\n전송된 데이터]-->Accept;
-    
     subgraph Server Socket;
     Socket-->Listen;
     Listen-->Accept;
     Accept-->stamina_sync[스태미나\n정보 갱신];
     stamina_sync-->Listen;
     end;
-
     subgraph Timer;
     timer_start[타이머 생성]-->sec;
     sec[sec=360]-->condition{sec != 0};
@@ -71,7 +69,6 @@ graph TB;
     condition-->|"No"|sync_stamina[현재 스태미나 +1];
     sync_stamina-->sec;
     end;
-
     subgraph Discord_Bot;
     TOKEN-->Client[discord.Client];
     CHANNEL_ID-->Client;
