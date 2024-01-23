@@ -17,4 +17,12 @@ graph TB;
 
 ## 구현 방법
 ### Client
+```mermaid
+graph TB;
+    Original image-->Screenshot;
+    Target image-->Load;
+    Screenshot-->gray(img2gray);
+    Load-->gray(img2gray);
+```
+
 ### Server
