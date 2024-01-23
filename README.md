@@ -19,6 +19,7 @@ graph TB;
 ### Client
 ```mermaid
 graph TB;
+    subgraph PC Client;
     Original_image-->Screenshot;
     Target_image-->Load;
     Screenshot-->gray1[img2gray]
@@ -41,6 +42,7 @@ graph TB;
     bin_neg2-->OCR2[OCR];
     OCR1-->calc_stamina[스태미나 충전\n예상 시간 계산];
     OCR2-->calc_stamina;
+    end;
     calc_stamina-->connect_server[서버 연결\n및\n데이터 전송];
 ```
 SIFT 검출기로 특징 영역 추출, knnMatch를 통한 매칭점 추출, homography matrix계산은 다음 링크를 참고하였습니다.  
