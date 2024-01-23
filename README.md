@@ -68,8 +68,8 @@ graph TB;
     sec[sec=360]-->condition{sec != 0};
     condition-->|"Yes"|process_time[sec -= 1\ntime.sleep 1];
     process_time-->condition;
-    condition-->|"No\n현재 스태미나 +1"|Stamina;
     end;
+    condition-->|"No\n현재 스태미나 +1"|Stamina;
 
     subgraph Discord_Bot;
     TOKEN-->Client[discord.Client];
