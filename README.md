@@ -108,5 +108,5 @@ graph TB;
 간단한 리모컨의 형태입니다.
 
 ### Server
-<img src="https://github.com/201710808/Game-Stamina-Alarm/assets/79844211/391bd684-f4f1-4b18-af45-a878182b0037" width="200"><br>
+<img src="https://github.com/201710808/Game-Stamina-Alarm/assets/79844211/391bd684-f4f1-4b18-af45-a878182b0037" width="500"><br>
 Termux를 사용해 서버 로그와 UI가 출력됩니다.
