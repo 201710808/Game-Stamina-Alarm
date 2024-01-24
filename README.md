@@ -97,7 +97,16 @@ graph TB;
 [Termux 앱으로 안드로이드 폰으로 SSH 서버 환경설정](https://oopaque.tistory.com/84)  
 
 ## 실제 동작
+### Client
+#### 이미지 인식 기능 시각화
 <img src="https://github.com/201710808/Game-Stamina-Alarm/assets/79844211/2d9e5fa3-55d3-49f2-9104-07b7fa1cae21" width="800"><br>
 - 좌측 이미지: 찾으려는 타겟 이미지
 - 청색 사각형: 스크린샷(원본 이미지)에서 찾아낸 타겟 이미지
-- 적·녹색 사각형: 찾아낸 타겟 이미지 기반 상대 좌표로 설정한 OCR을 위한 ROI 
+- 적·녹색 사각형: 찾아낸 타겟 이미지 기반 상대 좌표로 설정한 OCR을 위한 ROI
+#### Client UI
+<img src="https://github.com/201710808/Game-Stamina-Alarm/assets/79844211/23252fc3-e112-4d5b-bd16-a36306505a45" width="200"><br>
+간단한 리모컨의 형태입니다.
+
+### Server
+<img src="https://github.com/201710808/Game-Stamina-Alarm/assets/79844211/391bd684-f4f1-4b18-af45-a878182b0037" width="200"><br>
+Termux를 사용해 서버 로그와 UI가 출력됩니다.
