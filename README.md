@@ -112,6 +112,6 @@ graph TB;
 <img src="https://github.com/201710808/Game-Stamina-Alarm/assets/79844211/391bd684-f4f1-4b18-af45-a878182b0037" width="500"><br>
 Termux를 사용해 서버 로그와 UI가 출력됩니다.
 #### Discord Bot Alarm
-<img src="https://github.com/201710808/Game-Stamina-Alarm/assets/79844211/e0d4e209-457f-4f85-991e-f373e54f5c88" width="600"><br>
+<img src="https://github.com/201710808/Game-Stamina-Alarm/assets/79844211/24de8eb1-7c8c-4b92-a0b3-6daf5b843510" width="600"><br>
 Discord의 Bot서비스를 이용해 사용자에게 알림을 보냅니다.
 
