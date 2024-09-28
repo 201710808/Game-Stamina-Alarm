@@ -17,7 +17,7 @@ PyInstaller.__main__.run([
     f'--add-data=.env{os.pathsep}.',
     f'--add-data=resource/ip.txt{os.pathsep}resource/',
     f'--add-data=resource/arknights_client.ui{os.pathsep}resource/',
-    f'--add-data=resource/operation.PNG{os.pathsep}resource/',
+    f'--add-data=resource/operation_*.PNG{os.pathsep}resource/',
 
     '--noconfirm',
     pyInstallerVersionCheck(),
