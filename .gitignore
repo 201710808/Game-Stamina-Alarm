@@ -199,7 +199,7 @@ backup/*
 
 # Resource files
 resource/*
-!resource/operation.PNG
+!resource/operation_*.PNG
 !resource/arknights_client.ui
 !resource/arknight_sanity_detector.ico
 
