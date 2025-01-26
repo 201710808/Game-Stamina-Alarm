@@ -249,7 +249,7 @@ async def send_message_channel():
             if present_sanity != '-' and present_sanity < total_sanity:
                 present_sanity += 1
                 
-                if status == 'Connected':
+                if status != 'Disconnected':
                     message = f'{total_sanity}, {present_sanity}, {status}'
                     clientSock.send(message.encode())
                     print(f'Message: {message}')
@@ -273,7 +273,7 @@ async def send_message_channel():
             estimated_time = calculate_estimated_time(total_sanity, present_sanity)
             await create_and_send_embed(channel, estimated_time)
             
-            status = 'Connected'
+            # status = 'Connected'
             
         # Send discord message when the client is disconnected
         elif status == 'Close':
