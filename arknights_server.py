@@ -18,15 +18,23 @@ global total_sanity
 global status
 global sec
 global clientSock
+global error_recovery_count
+global error_limit
+global serverSock
 
 present_sanity = '-'
 total_sanity = '-'
 status = 'Disconnected'
+error_recovery_count = 0
 
 load_dotenv()
 sec = int(os.environ.get('INTERVAL'))
+error_limit = sec
+
 
 def receive():
+    global serverSock
+
     port = int(os.environ.get('PORT'))
     serverSock = socket(AF_INET, SOCK_STREAM)
     serverSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -45,14 +53,22 @@ def receive():
         try:
             global total_sanity
             global present_sanity
+            global error_recovery_count
             
             recvData = clientSock.recv(1024)
             if recvData.decode():
+                error_recovery_count = 0
                 print(f'Data received: {recvData.decode()}')
                 recvData = list(map(lambda x: x.strip(), recvData.decode().split(',')))
                 print(recvData)
+
+                if len(recvData) > 3:
+                    print(f'Wrong data received.')
+                    status = 'Disconnected'
+                    server_start_thread()
+                    break
                 
-                if recvData[2] == 'Detect':
+                if recvData[2] == 'Detect' or recvData[2] == 'Check':
                     if recvData[0].isdigit() and recvData[1].isdigit():
                         if int(recvData[0]) > 0 and int(recvData[1]) >= 0 and int(recvData[1]) <= int(recvData[0]):
                             total_sanity = int(recvData[0])
@@ -240,19 +256,32 @@ async def send_message_channel():
     global total_sanity
     global present_sanity
     global clientSock
+    global error_recovery_count
+    global error_limit
+    global serverSock
     
     if sec > 0:
         sec -= 1
+        error_recovery_count += 1
+        if error_recovery_count % 10 == 0:
+            print(f'Error recovery count: {error_recovery_count}')
         # print(sec)
             
         if sec == 0:
             if present_sanity != '-' and present_sanity < total_sanity:
                 present_sanity += 1
                 
-                if status != 'Disconnected':
-                    message = f'{total_sanity}, {present_sanity}, {status}'
-                    clientSock.send(message.encode())
-                    print(f'Message: {message}')
+                # if status == 'Connected':
+                #     message = f'{total_sanity}, {present_sanity}, {status}'
+                #     clientSock.send(message.encode())
+                #     print(f'Message: {message}')
+        
+        # If status is connected but no response from client, restart server
+        if error_recovery_count > error_limit and status == 'Connected':
+            status = 'Disconnected'
+            serverSock.shutdown(SHUT_RDWR)
+            print(f'No response from client.')
+            server_start_thread()
     
     try:
         # Send discord message if less than 60 min left before the sanity is full
@@ -273,7 +302,8 @@ async def send_message_channel():
             estimated_time = calculate_estimated_time(total_sanity, present_sanity)
             await create_and_send_embed(channel, estimated_time)
             
-            # status = 'Connected'
+            if status != 'Disconnected':
+                status = 'Connected'
             
         # Send discord message when the client is disconnected
         elif status == 'Close':

@@ -142,6 +142,10 @@ class WindowClass(QMainWindow, form_class):
 
         # self.ui_mode = 'Normal'
         self.ui_mode = 'R6'
+
+        self.error_recovery_timer = QTimer()
+        self.error_recovery_timer.timeout.connect(self.error_recovery)
+        self.error_recovery_timer.start(60000)
     
     @pyqtSlot()
     def connection_error(self):
@@ -300,6 +304,12 @@ class WindowClass(QMainWindow, form_class):
 
         except:
             pass
+    
+    def error_recovery(self):
+        if self.client.is_connected:
+            self.client.total_sanity = '-'
+            self.client.present_sanity = '-'
+            self.client.send('Check')
 
     # Update UI
     @pyqtSlot()
