@@ -24,6 +24,7 @@ import threading
 
 import os
 from dotenv import load_dotenv
+import logging
 
 
 load_dotenv()
@@ -38,6 +39,15 @@ load_dotenv()
 #     shell.ShellExecuteEx(lpVerb='runas', lpFile=sys.executable, lpParameters=params)
 #     sys.exit(0)
 
+# Log setting ======================================================================================================
+os.makedirs('./logs', exist_ok=True)
+logging.basicConfig(filename="./logs/client.log", level=logging.INFO,
+                    format="%(asctime)s %(levelname)s: %(message)s",
+                    datefmt="%Y/%m/%d %I:%M:%S %p")
+logger = logging.getLogger('main')
+logger.info('\n\nLogging start ' + ('=' * 30))
+# ==================================================================================================================
+
 # UI setting =======================================================================================================
 form_class = uic.loadUiType(r"./resource/arknights_client.ui")[0]
 
@@ -47,6 +57,10 @@ def suppress_qt_warnings():
     environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     environ["QT_SCREEN_SCALE_FACTORS"] = "1"
     environ["QT_SCALE_FACTOR"] = "1"
+# ==================================================================================================================
+
+# Maintenance ======================================================================================================
+is_test = False
 # ==================================================================================================================
 
 # Client ============================================================================================================
@@ -61,26 +75,31 @@ class Client(QThread):
         self.estimated_time = 0
         
         self.clientSock = None
-        self.ip_3num = os.environ.get('IP_3NUM')
-        # self.ip_3num = '127.0.0.'
-        # self.ip_1num = '1'
-        self.port = int(os.environ.get('PORT'))
-        
         self.is_connected = False
+        if not is_test:
+            self.ip_3num = os.environ.get('IP_3NUM')
+            self.port = int(os.environ.get('PORT'))
+        else:
+            self.ip_3num = '127.0.0.'
+            self.ip_1num = '1'
+            self.port = 8080
         
     def connect(self):
         self.clientSock = socket(AF_INET, SOCK_STREAM)
         # self.clientSock.settimeout(3)
         
         try:
-            with open(r"./resource/ip.txt", "r") as f:
-                self.ip_1num = f.read()
-            f.close()
-            
+            # if not is_test:
+            #     with open(r"./resource/ip.txt", "r") as f:
+            #         self.ip_1num = f.read()
+            #     f.close()
+                
             ip = self.ip_3num + self.ip_1num
             self.clientSock.connect((ip, self.port))
-            print(f'{ip}에 접속되었습니다.')
+            # print(f'{ip}에 접속되었습니다.')
+            logger.info(f"Connected to {ip}:{self.port}")
             self.is_connected = True
+            
             recv_thread = threading.Thread(target=self.receive, daemon=True)
             recv_thread.start()
 
@@ -92,8 +111,10 @@ class Client(QThread):
     def send(self, _status):
         try:
             sendData = str(self.total_sanity) + ',' + str(self.present_sanity) + ',' + _status
+            logger.info(f"Data sent: {sendData}")
             self.clientSock.send(sendData.encode())
         except:
+            logger.error(f"Connection error occured!")
             self.connection_error_signal.emit()
 
     def receive(self):
@@ -102,9 +123,10 @@ class Client(QThread):
                 recvData = self.clientSock.recv(1024)
                 
                 if recvData.decode():
-                    print(f'Data received: {recvData.decode()}')
+                    # print(f'Data received: {recvData.decode()}')
+                    logger.info(f"Data received: {recvData.decode()}")
                     recvData = list(map(lambda x: x.strip(), recvData.decode().split(',')))
-                    print(recvData)
+                    # print(recvData)
                     
                     try:
                         self.total_sanity = int(recvData[0])
@@ -112,13 +134,15 @@ class Client(QThread):
                         self.estimated_time = (self.total_sanity - self.present_sanity) * 6
                         self.data_received_signal.emit()
                     except:
-                        print(f'Data is not valid')
+                        # print(f'Data is not valid')
+                        logger.warning(f"Data is not valid")
             except:
                 self.shutdown()
                 self.connect()
                 break
     
     def shutdown(self):
+        logger.info(f"Client shutdown")
         self.is_connected = False
         self.clientSock.shutdown(SHUT_RDWR)
         
@@ -142,6 +166,7 @@ class WindowClass(QMainWindow, form_class):
 
         # self.ui_mode = 'Normal'
         self.ui_mode = 'R6'
+        logger.info(f"UI mode - {self.ui_mode}")
 
         self.error_recovery_timer = QTimer()
         self.error_recovery_timer.timeout.connect(self.error_recovery)
@@ -159,6 +184,7 @@ class WindowClass(QMainWindow, form_class):
         self.client.connect()
     
     def identify_sanity(self):
+        logger.info(f"Detection start")
         # pag.screenshot(r'./resource/screenshot.png')
         
         # 모니터가 한 개 이상일 경우 모든 모니터에서 이미지 검색
@@ -166,7 +192,7 @@ class WindowClass(QMainWindow, form_class):
         img = ImageGrab.grab()
         img.save(r"./resource/screenshot.png")
         img = cv2.imread(r'./resource/screenshot.png')
-        tmp = cv2.imread(f"./resource/operation_{self.ui_mode}.PNG")
+        tmp = cv2.imread(f"./resource/operation_{self.ui_mode}.png")
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray_tmp = cv2.cvtColor(tmp, cv2.COLOR_BGR2GRAY)
 
@@ -177,133 +203,156 @@ class WindowClass(QMainWindow, form_class):
         matcher = cv2.BFMatcher()
         matches = matcher.knnMatch(desc1, desc2, k=2)
 
-        good = [first for first, second in matches if first.distance < second.distance * 0.3]
+        th = 0.3
+        while th < 0.8:
+            while th < 0.8:
+                logger.info(f"Matching threshold - {th}")
+                good = [first for first, second in matches if first.distance < second.distance * th]
 
-        src_pts = np.float32([kp1[m.queryIdx].pt for m in good])
-        dst_pts = np.float32([kp2[m.trainIdx].pt for m in good])
+                src_pts = np.float32([kp1[m.queryIdx].pt for m in good])
+                dst_pts = np.float32([kp2[m.trainIdx].pt for m in good])
 
-        # img_matches = cv2.drawMatchesKnn(tmp, kp1, img, kp2, matches, None,
-        #                                  flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+                logger.info(f"pairs of src_pts: {len(src_pts)}")
+                logger.info(f"pairs of dst_pts: {len(dst_pts)}")
 
-        # 좋은 매칭만 그리기
-        # img_good_matches = cv2.drawMatches(tmp, kp1, img, kp2, good, None,
-        #                                    flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+                if len(src_pts) >= 4 and len(dst_pts) >= 4:
+                    logger.info(f"Found sufficient pairs of corresponding points")
+                    break
+                else:
+                    logger.warning(f"Insufficient pairs of corresponding points")
+                    th += 0.05
 
-        # cv2.imwrite('./resource/matches.jpg', img_matches)
-        # cv2.imwrite('./resource/good_matches.jpg', img_good_matches)
+            # img_matches = cv2.drawMatchesKnn(tmp, kp1, img, kp2, matches, None,
+            #                                  flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-        try:
-            mtrx, mask = cv2.findHomography(src_pts, dst_pts)
-            h, w, = tmp.shape[:2]
-            pts = np.float32([[[0, 0]], [[0, h - 1]], [[w - 1, h - 1]], [[w - 1, 0]]])
-            dst = cv2.perspectiveTransform(pts, mtrx)
+            # 좋은 매칭만 그리기
+            # img_good_matches = cv2.drawMatches(tmp, kp1, img, kp2, good, None,
+            #                                    flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
 
-            # dst에 저장된 값은 좌상단, 좌하단, 우하단, 우상단 순
-            # img = cv2.rectangle(img, (int(2.5 * dst[0][0][0] - 1.5 * dst[3][0][0]), dst[0][0][1]),
-            #                     (dst[0][0][0], int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2)),
-            #                     (0, 0, 255), 2)
+            # cv2.imwrite('./resource/matches.jpg', img_matches)
+            # cv2.imwrite('./resource/good_matches.jpg', img_good_matches)
 
-            # Present Sanity
-            if self.ui_mode == 'Normal':
-                x1 = int(2.04 * dst[0][0][0] - 1.04 * dst[3][0][0])
-                y1 = int(dst[0][0][1])
-                x2 = int(dst[0][0][0])
-                y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.2)
-            
-            elif self.ui_mode == 'R6':
-                x1 = int(dst[0][0][0] - (dst[3][0][0] - dst[0][0][0]) * 1.8)
-                y1 = int(dst[0][0][1] - (dst[1][0][1] - dst[0][0][1]) * 3.0)
-                x2 = int(dst[0][0][0] - (dst[3][0][0] - dst[0][0][0]) * 0.3)
-                y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.2)
+            try:
+                mtrx, mask = cv2.findHomography(src_pts, dst_pts)
+                h, w, = tmp.shape[:2]
+                pts = np.float32([[[0, 0]], [[0, h - 1]], [[w - 1, h - 1]], [[w - 1, 0]]])
+                dst = cv2.perspectiveTransform(pts, mtrx)
 
-            cropped = gray_img[y1: y2, x1: x2]
-            if self.ui_mode == 'Normal':
-                _, binarized = cv2.threshold(cropped, 100, 255, cv2.THRESH_BINARY)
-            elif self.ui_mode == 'R6':
-                _, binarized = cv2.threshold(cropped, 200, 255, cv2.THRESH_BINARY)
+                # dst에 저장된 값은 좌상단, 좌하단, 우하단, 우상단 순
+                # img = cv2.rectangle(img, (int(2.5 * dst[0][0][0] - 1.5 * dst[3][0][0]), dst[0][0][1]),
+                #                     (dst[0][0][0], int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2)),
+                #                     (0, 0, 255), 2)
 
-            pil_img = Image.fromarray(binarized)
-            # w, h = pil_img.size
-            # scale_factor = 50 / h
-            # pil_img = pil_img.resize((int(w * scale_factor), int(h * scale_factor)))
-            # pil_img.save(r'./resource/preprocessed_img1.png')
-            
-            # Total Sanity
-            if self.ui_mode == 'Normal':
-                x1 = int((2.04 - 0.55) * dst[0][0][0] - (1.04 - 0.55) * dst[3][0][0])
-                y1 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.2)
-                x2 = int((dst[0][0][0]) - (dst[0][0][0] - x1) * 0.3)
-                y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 1.1)
-            
-            elif self.ui_mode == 'R6':
-                x1 = int((2.04 - 0.0001) * dst[0][0][0] - (1.04 - 0.0001) * dst[3][0][0])
-                y1 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.8)
-                x2 = int((dst[0][0][0]) - (dst[0][0][0] - x1) * 0.3)
-                y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 0.5)
-
-            cropped2 = gray_img[y1: y2, x1: x2]
-            if self.ui_mode == 'Normal':
-                _, binarized = cv2.threshold(cropped2, 100, 255, cv2.THRESH_BINARY)
-                cropped2 = cv2.bitwise_not(binarized, cv2.IMREAD_COLOR)
-            pil_img2 = Image.fromarray(cropped2)
-            # w, h = pil_img2.size
-            # scale_factor = 30 / h
-            # pil_img2 = pil_img2.resize((int(w * scale_factor), int(h * scale_factor)))
-            # pil_img2.save(r'./resource/preprocessed_img2.png')
-
-            # pipeline = keras_ocr.pipeline.Pipeline()
-            # image1 = keras_ocr.tools.read(r'./resource/preprocessed_img1.png')
-            # image2 = keras_ocr.tools.read(r'./resource/preprocessed_img2.png')
-            # prediction_groups = pipeline.recognize([image1, image2])
-
-            # # print(prediction_groups[0][0][0], prediction_groups[1][0][0])
-            # present_sanity = prediction_groups[0][0][0]
-            # total_sanity = prediction_groups[1][0][0]
-
-
-            # pyTesseract OCR digits.traineddata
-            # https://github.com/Shreeshrii/tessdata_shreetest/blob/master/digits.traineddata
-            present_sanity = pytesseract.image_to_string(pil_img, lang='digits', config='--psm 6')
-            total_sanity = pytesseract.image_to_string(pil_img2, lang='digits', config='--psm 6')
-            # print(f'present_sanity: {present_sanity}, total_sanity: {total_sanity}')
-            present_sanity = ''.join([i for i in present_sanity if i.isdigit()])
-            total_sanity = ''.join([i for i in total_sanity if i.isdigit()])
-
-            if present_sanity[0] == 'O':
-                present_sanity = 0
+                # Present Sanity
+                if self.ui_mode == 'Normal':
+                    x1 = int(2.04 * dst[0][0][0] - 1.04 * dst[3][0][0])
+                    y1 = int(dst[0][0][1])
+                    x2 = int(dst[0][0][0])
+                    y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.2)
                 
-            print(f'present_sanity: {present_sanity}, total_sanity: {total_sanity}')
+                elif self.ui_mode == 'R6':
+                    x1 = int(dst[0][0][0] - (dst[3][0][0] - dst[0][0][0]) * 1.8)
+                    y1 = int(dst[0][0][1] - (dst[1][0][1] - dst[0][0][1]) * 3.0)
+                    x2 = int(dst[0][0][0] - (dst[3][0][0] - dst[0][0][0]) * 0.3)
+                    y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.2)
+
+                logger.info(f"Present Sanity coords - ({x1}, {y1}), ({x2}, {y2})")
+
+                cropped = gray_img[y1: y2, x1: x2]
+                if self.ui_mode == 'Normal':
+                    _, binarized = cv2.threshold(cropped, 100, 255, cv2.THRESH_BINARY)
+                elif self.ui_mode == 'R6':
+                    _, binarized = cv2.threshold(cropped, 200, 255, cv2.THRESH_BINARY)
+
+                pil_img = Image.fromarray(binarized)
+                # w, h = pil_img.size
+                # scale_factor = 50 / h
+                # pil_img = pil_img.resize((int(w * scale_factor), int(h * scale_factor)))
+                # pil_img.save(r'./resource/preprocessed_img1.png')
                 
-            text1 = '현재 이성: ' + str(present_sanity) + '/' + str(total_sanity)
-            text1 = text1.replace("\n", "")
-            # self.label1.setText(str(text1))
-            # self.label1.repaint()
+                # Total Sanity
+                if self.ui_mode == 'Normal':
+                    x1 = int((2.04 - 0.55) * dst[0][0][0] - (1.04 - 0.55) * dst[3][0][0])
+                    y1 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.2)
+                    x2 = int((dst[0][0][0]) - (dst[0][0][0] - x1) * 0.3)
+                    y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 1.1)
+                
+                elif self.ui_mode == 'R6':
+                    x1 = int((2.04 - 0.0001) * dst[0][0][0] - (1.04 - 0.0001) * dst[3][0][0])
+                    y1 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.8)
+                    x2 = int((dst[0][0][0]) - (dst[0][0][0] - x1) * 0.3)
+                    y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 0.5)
 
-            estimated_time = (int(total_sanity) - int(present_sanity)) * 6
-            text2 = '예상 소요 시간: ' + str(estimated_time) + '분'
-            text2 = text2.replace("\n", "")
-            # self.label2.setText(str(text2))
-            # self.label2.repaint()
+                logger.info(f"Total Sanity coords - ({x1}, {y1}), ({x2}, {y2})")
 
-            _, _, _, hh, mm, _, _, _, _ = time.localtime(time.time())
-            hh = int(hh + estimated_time / 60)
-            mm += (estimated_time % 60)
-            if mm >= 60:
-                mm -= 60
-                hh += 1
-            if hh >= 24:
-                hh -= 24
-            text3 = '완충 완료 시각: ' + str(int(hh)) + ':' + format(mm, '02')
-            # self.label3.setText(str(text3))
-            # self.label3.repaint()
+                cropped2 = gray_img[y1: y2, x1: x2]
+                if self.ui_mode == 'Normal':
+                    _, binarized = cv2.threshold(cropped2, 100, 255, cv2.THRESH_BINARY)
+                    cropped2 = cv2.bitwise_not(binarized, cv2.IMREAD_COLOR)
+                pil_img2 = Image.fromarray(cropped2)
+                # w, h = pil_img2.size
+                # scale_factor = 30 / h
+                # pil_img2 = pil_img2.resize((int(w * scale_factor), int(h * scale_factor)))
+                # pil_img2.save(r'./resource/preprocessed_img2.png')
 
-            self.client.total_sanity = total_sanity
-            self.client.present_sanity = present_sanity
-            self.client.estimated_time = estimated_time
-            self.client.send('Detect')
+                # pipeline = keras_ocr.pipeline.Pipeline()
+                # image1 = keras_ocr.tools.read(r'./resource/preprocessed_img1.png')
+                # image2 = keras_ocr.tools.read(r'./resource/preprocessed_img2.png')
+                # prediction_groups = pipeline.recognize([image1, image2])
 
-        except:
-            pass
+                # # print(prediction_groups[0][0][0], prediction_groups[1][0][0])
+                # present_sanity = prediction_groups[0][0][0]
+                # total_sanity = prediction_groups[1][0][0]
+
+
+                # pyTesseract OCR digits.traineddata
+                # https://github.com/Shreeshrii/tessdata_shreetest/blob/master/digits.traineddata
+                present_sanity = pytesseract.image_to_string(pil_img, lang='digits', config='--psm 6')
+                total_sanity = pytesseract.image_to_string(pil_img2, lang='digits', config='--psm 6')
+                # print(f'present_sanity: {present_sanity}, total_sanity: {total_sanity}')
+                present_sanity = ''.join([i for i in present_sanity if i.isdigit()])
+                total_sanity = ''.join([i for i in total_sanity if i.isdigit()])
+
+                if present_sanity[0] == 'O':
+                    present_sanity = 0
+                    
+                # print(f'present_sanity: {present_sanity}, total_sanity: {total_sanity}')
+                logger.info(f"Detected sanity - {present_sanity} / {total_sanity}")
+                    
+                text1 = '현재 이성: ' + str(present_sanity) + '/' + str(total_sanity)
+                text1 = text1.replace("\n", "")
+                # self.label1.setText(str(text1))
+                # self.label1.repaint()
+
+                estimated_time = (int(total_sanity) - int(present_sanity)) * 6
+                text2 = '예상 소요 시간: ' + str(estimated_time) + '분'
+                text2 = text2.replace("\n", "")
+                # self.label2.setText(str(text2))
+                # self.label2.repaint()
+
+                _, _, _, hh, mm, _, _, _, _ = time.localtime(time.time())
+                hh = int(hh + estimated_time / 60)
+                mm += (estimated_time % 60)
+                if mm >= 60:
+                    mm -= 60
+                    hh += 1
+                if hh >= 24:
+                    hh -= 24
+                text3 = '완충 완료 시각: ' + str(int(hh)) + ':' + format(mm, '02')
+                # self.label3.setText(str(text3))
+                # self.label3.repaint()
+
+                self.client.total_sanity = total_sanity
+                self.client.present_sanity = present_sanity
+                self.client.estimated_time = estimated_time
+                self.client.send('Detect')
+                break
+
+            except Exception as e:
+                logger.error(f"Error occured while detecting sanity")
+                logger.error(e)
+                th += 0.05
+                # pass
     
     def error_recovery(self):
         if self.client.is_connected:
@@ -335,6 +384,8 @@ class WindowClass(QMainWindow, form_class):
         text3 = '완충 완료 시각: ' + str(int(hh)) + ':' + format(mm, '02')
         self.label3.setText(str(text3))
         # self.label3.repaint()
+        
+        logger.info(f"UI refreshed")
 
     def close_program(self):
         self.client.send('Close')
