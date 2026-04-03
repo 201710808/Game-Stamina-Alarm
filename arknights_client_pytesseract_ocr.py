@@ -165,7 +165,8 @@ class WindowClass(QMainWindow, form_class):
         self.client.connect()
 
         # self.ui_mode = 'Normal'
-        self.ui_mode = 'R6'
+        # self.ui_mode = 'R6'
+        self.ui_mode = 'Sanrio'
         logger.info(f"UI mode - {self.ui_mode}")
 
         self.error_recovery_timer = QTimer()
@@ -184,6 +185,20 @@ class WindowClass(QMainWindow, form_class):
             f.close()
         
         self.client.connect()
+
+    def shear_image(self, image, shear_factor):
+        h, w = image.shape[:2]
+
+        M = np.float32([
+            [1, shear_factor, 0],
+            [0, 1,            0]
+        ])
+
+        new_w = int(w + abs(shear_factor) * h)
+
+        warped = cv2.warpAffine(image, M, (new_w, h))
+        
+        return warped
     
     def identify_sanity(self):
         logger.info(f"Detection start")
@@ -245,28 +260,44 @@ class WindowClass(QMainWindow, form_class):
                 #                     (dst[0][0][0], int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2)),
                 #                     (0, 0, 255), 2)
 
+                dx = dst[3][0][0] - dst[0][0][0]
+                dy = dst[1][0][1] - dst[0][0][1]
+
                 # Present Sanity
                 if self.ui_mode == 'Normal':
                     x1 = int(2.04 * dst[0][0][0] - 1.04 * dst[3][0][0])
                     y1 = int(dst[0][0][1])
                     x2 = int(dst[0][0][0])
-                    y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.2)
+                    y2 = int(dst[1][0][1] + dy / 2.2)
                 
                 elif self.ui_mode == 'R6':
-                    x1 = int(dst[0][0][0] - (dst[3][0][0] - dst[0][0][0]) * 1.8)
-                    y1 = int(dst[0][0][1] - (dst[1][0][1] - dst[0][0][1]) * 3.0)
-                    x2 = int(dst[0][0][0] - (dst[3][0][0] - dst[0][0][0]) * 0.3)
-                    y2 = int(dst[1][0][1] + (dst[1][0][1] - dst[0][0][1]) / 2.2)
+                    x1 = int(dst[0][0][0] - dx * 1.8)
+                    y1 = int(dst[0][0][1] - dy * 3.0)
+                    x2 = int(dst[0][0][0] - dx * 0.3)
+                    y2 = int(dst[1][0][1] + dy / 2.2)
+
+                elif self.ui_mode == 'Sanrio':
+                    x1 = int(dst[0][0][0] - dx * 0.2)
+                    y1 = int(dst[0][0][1] - dy * 2.0)
+                    x2 = int(dst[3][0][0] + dx * 0.4)
+                    y2 = int(dst[3][0][1] + dy * 0.0)
 
                 logger.info(f"Present Sanity coords - ({x1}, {y1}), ({x2}, {y2})")
 
                 cropped = gray_img[y1: y2, x1: x2]
                 if self.ui_mode == 'Normal':
                     _, binarized = cv2.threshold(cropped, 100, 255, cv2.THRESH_BINARY)
+                    preprocessed = binarized
                 elif self.ui_mode == 'R6':
                     _, binarized = cv2.threshold(cropped, 200, 255, cv2.THRESH_BINARY)
+                    preprocessed = binarized
+                elif self.ui_mode == 'Sanrio':
+                    _, binarized = cv2.threshold(cropped, 200, 255, cv2.THRESH_BINARY)
+                    binarized = self.shear_image(binarized, shear_factor=0.33)
+                    thinned = cv2.erode(binarized, np.ones((3, 3), np.uint8), iterations=3)
+                    preprocessed = thinned
 
-                pil_img = Image.fromarray(binarized)
+                pil_img = Image.fromarray(preprocessed)
                 # w, h = pil_img.size
                 # scale_factor = 50 / h
                 # pil_img = pil_img.resize((int(w * scale_factor), int(h * scale_factor)))
@@ -309,7 +340,9 @@ class WindowClass(QMainWindow, form_class):
 
                 # pyTesseract OCR digits.traineddata
                 # https://github.com/Shreeshrii/tessdata_shreetest/blob/master/digits.traineddata
-                present_sanity = pytesseract.image_to_string(pil_img, lang='digits', config='--psm 6')
+                # present_sanity = pytesseract.image_to_string(pil_img, lang='digits', config='--psm 6')
+                config = "--oem 1 --psm 8 -c tessedit_char_whitelist=0123456789 -c load_system_dawg=0 -c load_freq_dawg=0"
+                present_sanity = pytesseract.image_to_string(pil_img, lang='digits', config=config) 
                 logger.info(f"Detected present sanity - {present_sanity}")
                 # total_sanity = pytesseract.image_to_string(pil_img2, lang='digits', config='--psm 6')
                 # print(f'present_sanity: {present_sanity}, total_sanity: {total_sanity}')

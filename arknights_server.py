@@ -23,12 +23,12 @@ global error_limit
 global serverSock
 
 present_sanity = '-'
-total_sanity = '-'
 status = 'Disconnected'
 error_recovery_count = 0
 
 load_dotenv()
 sec = int(os.environ.get('INTERVAL'))
+total_sanity = int(os.environ.get('TOTAL_SANITY'))
 error_limit = sec
 
 
@@ -325,7 +325,7 @@ async def send_message_channel():
         sec = int(os.environ.get('INTERVAL'))
         
 @bot.command()
-async def a(ctx, _present_sanity: int=0, _total_sanity: int=135):
+async def a(ctx, _present_sanity: int=0, _total_sanity: int=None):
     try:
         global present_sanity
         global total_sanity
@@ -335,7 +335,8 @@ async def a(ctx, _present_sanity: int=0, _total_sanity: int=135):
         await delete_messages(channel)
         try:
             present_sanity = int(_present_sanity)
-            total_sanity = int(_total_sanity)
+            if _total_sanity:
+                total_sanity = int(_total_sanity)
             print(f'Sanity set from Discord: {present_sanity}/{total_sanity}')
             
             global clientSock
